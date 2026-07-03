@@ -123,21 +123,26 @@ python bert/weibo_senti.py
    # Linux/Mac: unzip chinese_wwm_ext_L-12_H-768_A-12.zip -d model/chinese_bert_wwm_ext_L-12_H-768_A-12/
    ```
 
-5. **转换为 PyTorch 格式**
+5. **转换为 PyTorch 格式（自动批量转换）**
 
    TensorFlow 格式的模型需要转换为 PyTorch 格式才能使用：
 
    ```bash
-   # 首次使用需要安装 TensorFlow（仅转换时需要）
-   pip install tensorflow-cpu -i https://pypi.tuna.tsinghua.edu.cn/simple
-   
-   # 运行转换脚本
+   # 运行自动转换脚本，会自动检测并转换所有未转换的模型
    python bert/convert_tf_to_pytorch.py
    ```
+
+   **脚本功能**：
+   - ✅ 自动扫描 `model/` 目录下的所有模型
+   - ✅ 智能检测已转换的模型，避免重复转换
+   - ✅ 支持 BERT 和 RoBERTa 模型的自动识别
+   - ✅ 自动生成 Hugging Face 标准的 `config.json` 配置文件
 
    转换完成后会生成以下文件：
    - `pytorch_model.bin` - PyTorch 模型权重
    - `config.json` - Hugging Face 标准配置文件
+
+   **注意**：如果自动转换失败，推荐使用下方的"替代方案"直接下载 PyTorch 格式模型。
 
 6. **验证安装**
 
@@ -154,17 +159,30 @@ python bert/weibo_senti.py
    所有测试通过！模型可以正常使用
    ```
 
-#### 替代方案：直接从 Hugging Face 下载
+#### 替代方案：直接从 Hugging Face 下载（推荐）
 
-如果无法访问 Google Drive，可以从 Hugging Face 下载等效模型：
+如果无法访问 Google Drive 或自动转换失败，可以从 Hugging Face 直接下载预转换好的 PyTorch 格式模型（更简单快速）：
+
+**方法一：使用 hf 命令行工具**
 
 ```bash
-# 使用 huggingface-cli 下载
-pip install huggingface_hub
-huggingface-cli download hfl/chinese-bert-wwm-ext --local-dir model/chinese_bert_wwm_ext_L-12_H-768_A-12
+# 安装 huggingface_hub
+pip install huggingface_hub -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+# 下载 BERT 模型
+hf download hfl/chinese-bert-wwm-ext --local-dir model/chinese_bert_wwm_ext_L-12_H-768_A-12
 ```
 
-或手动访问：https://huggingface.co/hfl/chinese-bert-wwm-ext
+**方法二：手动下载**
+
+访问：https://huggingface.co/hfl/chinese-bert-wwm-ext
+
+下载以下文件到 `model/chinese_bert_wwm_ext_L-12_H-768_A-12/` 目录：
+- `config.json`
+- `pytorch_model.bin` 或 `model.safetensors`
+- `vocab.txt`
+- `tokenizer_config.json`
+- `special_tokens_map.json`
 
 
 
