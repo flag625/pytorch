@@ -70,10 +70,13 @@ pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 ```bash
 # BERT 情感分析示例（使用本地模型）
-python bert/weibo_senti_bert_wwn_loaded_model.py
+python bert/bert_wwm/weibo_senti_bert_wwn_loaded_model.py
 
-# RoBERTa 情感分析示例
-python bert/bert_wwm/weibo_senti_roberta_wwn_ext.py
+# RoBERTa WWM 扩展版
+python bert/RoBERTa/weibo_senti_roberta_wwn_ext.py
+
+# RoBERTa-330M（神思-二郎神，通过 ModelScope）
+python bert/RoBERTa/weibo_senti_roberta_330m.py
 
 # 基础微博情感分析
 python bert/weibo_senti.py
@@ -83,7 +86,7 @@ python bert/weibo_senti.py
 
 ## 模型下载指南
 
-本项目使用 BERT 中文预训练模型进行情感分析。
+本项目支持多种预训练模型进行情感分析，包括 BERT、RoBERTa 以及专门的 RoBERTa-330M 情感分析模型。
 
 ### 一、BERT 中文预训练模型（用于情感分析）
 
@@ -204,6 +207,78 @@ model/
 
 ---
 
+### 三、RoBERTa-330M 情感分析模型（推荐）
+
+#### 模型来源
+
+[Erlangshen-RoBERTa-330M-Sentiment](https://modelscope.cn/models/Fengshenbang/Erlangshen-RoBERTa-330M-Sentiment) - 由封神榜团队发布，专门用于情感分析的 330M 参数大模型
+
+#### 模型特点
+
+- ✅ **330M 大参数**：比标准 BERT Base (110M) 大 3 倍，表达能力更强
+- ✅ **专门优化**：针对情感分析任务进行了专门训练
+- ✅ **ModelScope 支持**：国内镜像，下载速度更快
+- ✅ **开箱即用**：无需转换，直接加载 PyTorch 格式
+
+#### 下载步骤
+
+1. **安装 ModelScope**
+
+   ```bash
+   pip install modelscope -i https://pypi.tuna.tsinghua.edu.cn/simple
+   ```
+
+2. **下载模型**
+
+   方法一：使用 Python 代码下载
+   ```python
+   from modelscope import snapshot_download
+   model_dir = snapshot_download('Fengshenbang/Erlangshen-RoBERTa-330M-Sentiment', cache_dir='model')
+   print(f"模型已下载到: {model_dir}")
+   ```
+
+   方法二：命令行下载
+   ```bash
+   python -c "from modelscope import snapshot_download; snapshot_download('Fengshenbang/Erlangshen-RoBERTa-330M-Sentiment', cache_dir='model')"
+   ```
+
+3. **验证安装**
+
+   ```bash
+   # 运行测试脚本
+   python bert/RoBERTa/weibo_senti_roberta_330m.py
+   ```
+
+#### 目录结构
+
+```
+model/
+└── Fengshenbang/
+    └── Erlangshen-RoBERTa-330M-Sentiment/
+        ├── config.json
+        ├── pytorch_model.bin
+        ├── tokenizer.json
+        ├── tokenizer_config.json
+        └── vocab.txt
+```
+
+---
+
+### 四、模型对比与选择建议
+
+| 模型 | 参数量 | 优势 | 适用场景 |
+|------|--------|------|----------|
+| BERT WWM Ext | 110M | 平衡性能和速度 | 通用情感分析 |
+| RoBERTa WWM Large | 330M | 更好的泛化能力 | 复杂文本分析 |
+| RoBERTa-330M Sentiment | 330M | 专门优化情感分析 | 高精度需求场景 |
+
+**选择建议**：
+- 🚀 **快速原型**：使用 BERT WWM Ext
+- 🎯 **生产环境**：使用 RoBERTa-330M Sentiment
+- 🔬 **研究实验**：尝试所有模型对比效果
+
+---
+
 ## 数据集下载指南
 
 ### 微博情感分析数据集（用于 BERT 训练）
@@ -258,21 +333,27 @@ Weibo Senti 100k - 中文微博情感分析数据集
 
 ```
 PyTorch/
-├── bert/                          # BERT 相关代码
+├── bert/                          # BERT & RoBERTa 相关代码
 │   ├── bert_wwm/                  # BERT WWM 实现
 │   │   ├── weibo_senti_bert_wwn_ext.py           # BERT WWM 扩展版
-│   │   ├── weibo_senti_bert_wwn_loaded_model.py  # 加载已训练模型
-│   │   └── weibo_senti_roberta_wwn_ext.py        # RoBERTa WWM 扩展版
+│   │   └── weibo_senti_bert_wwn_loaded_model.py  # 加载已训练模型
+│   ├── RoBERTa/                   # RoBERTa 实现（新增）
+│   │   ├── weibo_senti_roberta_wwn_ext.py        # RoBERTa WWM 扩展版
+│   │   └── weibo_senti_roberta_330m.py           # RoBERTa-330M 情感分析（新增）
 │   ├── saved_model/               # 保存的训练模型
 │   │   ├── bert_base_chinese/     # BERT 基础版模型
 │   │   ├── bert_wwm_ext/          # BERT WWM 扩展版模型
-│   │   └── bert_wwm_ext_loaded_5/ # 已训练的 WWM 模型
+│   │   ├── bert_wwm_ext_loaded_5/ # 已训练的 WWM 模型
+│   │   ├── roberta-wwm-ext-large_5/      # RoBERTa WWM 模型
+│   │   └── roberta_330m_sentiment_5/       # RoBERTa-330M 模型（新增）
 │   ├── convert_tf_to_pytorch.py   # TF→PyTorch 转换脚本
 │   ├── weibo_senti.py             # 微博情感分析主程序
 │   └── BERT本地模型使用指南.md     # BERT 模型使用文档
 │
 ├── model/                         # 预训练模型（需手动下载）
-│   └── chinese_bert_wwm_ext_L-12_H-768_A-12/  # BERT 中文模型
+│   ├── chinese_bert_wwm_ext_L-12_H-768_A-12/  # BERT 中文模型
+│   └── Fengshenbang/                           # RoBERTa-330M 模型（新增）
+│       └── Erlangshen-RoBERTa-330M-Sentiment/
 │
 ├── data/                          # 数据集（需手动下载）
 │   └── weibo/                     # 微博情感数据
@@ -321,7 +402,10 @@ for text in texts:
 python bert/bert_wwm/weibo_senti_bert_wwn_ext.py
 
 # 使用 RoBERTa WWM 扩展版训练
-python bert/bert_wwm/weibo_senti_roberta_wwn_ext.py
+python bert/RoBERTa/weibo_senti_roberta_wwn_ext.py
+
+# 使用 RoBERTa-330M 情感分析模型训练（推荐）
+python bert/RoBERTa/weibo_senti_roberta_330m.py
 ```
 
 #### 3. 运行测试
@@ -377,9 +461,22 @@ pip install tf-keras -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```python
 # 例如更换为 RoBERTa
 LOCAL_MODEL_PATH = "model/chinese_roberta_wwm_ext"
+
+# 或使用 RoBERTa-330M（通过 ModelScope）
+MODEL_NAME = "Fengshenbang/Erlangshen-RoBERTa-330M-Sentiment"
+LOCAL_MODEL_PATH = "model/Fengshenbang/Erlangshen-RoBERTa-330M-Sentiment"
 ```
 
 确保新模型已正确下载并转换为 PyTorch 格式。
+
+---
+
+### Q5: ModelScope 和 Hugging Face 有什么区别？
+
+**A**: 
+- **ModelScope**：阿里达摩院推出的模型平台，国内访问速度快，适合下载中文模型
+- **Hugging Face**：国际知名模型平台，模型种类更全
+- **推荐使用**：中文模型优先使用 ModelScope，其他模型使用 Hugging Face
 
 ---
 
@@ -423,6 +520,8 @@ pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ## 🙏 致谢
 
 - [Chinese BERT WWM](https://github.com/ymcui/chinese-bert-wwm) - 哈工大讯飞联合实验室
+- [Erlangshen-RoBERTa-330M-Sentiment](https://modelscope.cn/models/Fengshenbang/Erlangshen-RoBERTa-330M-Sentiment) - 封神榜团队
+- [ModelScope](https://modelscope.cn/) - 阿里达摩院模型平台
 - [BERTopic](https://github.com/MaartenGr/BERTopic) - Maarten Grootendorp
 - [Sentence Transformers](https://github.com/UKPLab/sentence-transformers) - UKP Lab
 - [Jieba](https://github.com/fxsjy/jieba) - 中文分词工具

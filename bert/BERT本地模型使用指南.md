@@ -1,4 +1,4 @@
-# BERT 本地模型使用指南
+# BERT & RoBERTa 本地模型使用指南
 
 ## 📋 目录
 
@@ -6,6 +6,7 @@
 - [模型自动转换](#模型自动转换)
 - [手动下载 PyTorch 模型](#手动下载-pytorch-模型)
 - [代码使用说明](#代码使用说明)
+- [支持的模型列表](#支持的模型列表)
 - [常见问题](#常见问题)
 - [性能优势](#性能优势)
 
@@ -51,7 +52,14 @@ python test/test_model_loading.py
 ### 4. 运行情感分析
 
 ```bash
-python bert/weibo_senti_bert_wwn_loaded_model.py
+# BERT WWM 扩展版
+python bert/bert_wwm/weibo_senti_bert_wwn_loaded_model.py
+
+# RoBERTa WWM 扩展版
+python bert/RoBERTa/weibo_senti_roberta_wwn_ext.py
+
+# RoBERTa-330M（神思-二郎神）
+python bert/RoBERTa/weibo_senti_roberta_330m.py
 ```
 
 ---
@@ -75,6 +83,7 @@ python bert/weibo_senti_bert_wwn_loaded_model.py
 | BERT Large | `chinese_bert_wwm_large_ext_L-24_H-1024_A-16` | 24层，1024隐藏层 |
 | RoBERTa Base | `chinese_roberta_wwm_ext_L-12_H-768_A-12` | 12层，768隐藏层 |
 | RoBERTa Large | `chinese_roberta_wwm_large_ext_L-24_H-1024_A-16` | 24层，1024隐藏层 |
+| RoBERTa-330M | `Fengshenbang/Erlangshen-RoBERTa-330M-Sentiment` | 330M参数，专门用于情感分析 |
 
 ### 转换后的文件结构
 
@@ -111,9 +120,9 @@ model = RobertaModel.from_pretrained("model/chinese_roberta_wwm_large_ext_L-24_H
 
 ## 手动下载 PyTorch 模型
 
-如果自动转换失败，可以直接从 Hugging Face 下载预转换好的 PyTorch 格式模型。
+如果自动转换失败，可以直接从 Hugging Face 或 ModelScope 下载预转换好的 PyTorch 格式模型。
 
-### 方法一：使用 hf 命令行工具（推荐）
+### 方法一：使用 hf 命令行工具（推荐 - BERT/RoBERTa WWM）
 
 ```bash
 # 安装 huggingface_hub
@@ -124,6 +133,18 @@ hf download hfl/chinese-bert-wwm-ext --local-dir model/chinese_bert_wwm_ext_L-12
 
 # 下载 RoBERTa 模型
 hf download hfl/chinese-roberta-wwm-ext-large --local-dir model/chinese_roberta_wwm_large_ext_L-24_H-1024_A-16
+```
+
+### 方法二：使用 ModelScope 下载（推荐 - RoBERTa-330M）
+
+```bash
+# 安装 modelscope
+pip install modelscope -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+# 下载 RoBERTa-330M 情感分析模型
+from modelscope import snapshot_download
+model_dir = snapshot_download('Fengshenbang/Erlangshen-RoBERTa-330M-Sentiment', cache_dir='model')
+print(f"模型已下载到: {model_dir}")
 ```
 
 ### 方法二：从 Hugging Face 网站手动下载
@@ -151,6 +172,7 @@ hf download hfl/chinese-roberta-wwm-ext-large --local-dir model/chinese_roberta_
 1. **转换只需执行一次**：转换后的文件可以重复使用
 2. **不需要 TensorFlow**：直接下载 PyTorch 格式无需安装 TensorFlow
 3. **节省时间**：下载比转换更快，推荐使用
+4. **ModelScope 支持**：RoBERTa-330M 等模型可通过 ModelScope 下载，速度更快
 
 ---
 
@@ -158,9 +180,20 @@ hf download hfl/chinese-roberta-wwm-ext-large --local-dir model/chinese_roberta_
 
 ### 主要修改的文件
 
-1. **[weibo_senti_bert_wwn_loaded_model.py](file://F:/project/PyTorch/bert/weibo_senti_bert_wwn_loaded_model.py)**
+#### BERT 系列
+1. **[weibo_senti_bert_wwn_loaded_model.py](file://F:/project/PyTorch/bert/bert_wwm/weibo_senti_bert_wwn_loaded_model.py)**
    - 从本地路径加载模型，无需网络连接
    - 支持 BERT 和 RoBERTa 模型
+
+#### RoBERTa 系列
+2. **[weibo_senti_roberta_wwn_ext.py](file://F:/project/PyTorch/bert/RoBERTa/weibo_senti_roberta_wwn_ext.py)**
+   - 使用本地 BERT WWM Ext 模型进行微调
+   - 位于 `bert/RoBERTa/` 目录
+
+3. **[weibo_senti_roberta_330m.py](file://F:/project/PyTorch/bert/RoBERTa/weibo_senti_roberta_330m.py)**
+   - 基于 ModelScope 的 Erlangshen-RoBERTa-330M-Sentiment 模型
+   - 支持自动从 ModelScope 下载模型
+   - 330M 大参数模型，情感分析效果更佳
 
 2. **[requirements.txt](file://F:/project/PyTorch/requirements.txt)**
    - 包含所有必要的依赖包
@@ -173,6 +206,7 @@ hf download hfl/chinese-roberta-wwm-ext-large --local-dir model/chinese_roberta_
 
 ### 加载本地模型示例
 
+#### BERT 模型
 ```python
 from transformers import BertTokenizer, BertForSequenceClassification
 
@@ -181,6 +215,28 @@ LOCAL_MODEL_PATH = "model/chinese_bert_wwm_ext_L-12_H-768_A-12"
 
 tokenizer = BertTokenizer.from_pretrained(LOCAL_MODEL_PATH)
 model = BertForSequenceClassification.from_pretrained(LOCAL_MODEL_PATH, num_labels=2)
+
+print("模型加载成功！")
+```
+
+#### RoBERTa-330M 模型（通过 ModelScope）
+```python
+from modelscope import snapshot_download
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+import os
+
+MODEL_NAME = "Fengshenbang/Erlangshen-RoBERTa-330M-Sentiment"
+LOCAL_MODEL_PATH = "model/Fengshenbang/Erlangshen-RoBERTa-330M-Sentiment"
+
+# 检测本地模型，不存在则下载
+if not os.path.exists(LOCAL_MODEL_PATH):
+    print(f"正在从 ModelScope 下载: {MODEL_NAME}...")
+    model_dir = snapshot_download(MODEL_NAME, cache_dir="model")
+else:
+    model_dir = LOCAL_MODEL_PATH
+
+tokenizer = AutoTokenizer.from_pretrained(model_dir)
+model = AutoModelForSequenceClassification.from_pretrained(model_dir, num_labels=2)
 
 print("模型加载成功！")
 ```
@@ -230,6 +286,17 @@ python test/test_model_loading.py
 2. 确保包含 `bert_config.json` 和 `bert_model.ckpt.*` 文件
 3. 运行 `python bert/convert_tf_to_pytorch.py` 自动转换
 
+**或者直接从 ModelScope/HuggingFace 下载**：
+```python
+# ModelScope
+from modelscope import snapshot_download
+model_dir = snapshot_download('Fengshenbang/Erlangshen-RoBERTa-330M-Sentiment', cache_dir='model')
+
+# Hugging Face
+from huggingface_hub import snapshot_download
+model_dir = snapshot_download('hfl/chinese-bert-wwm-ext', local_dir='model/chinese_bert_wwm_ext')
+```
+
 ---
 
 ## 性能优势
@@ -249,9 +316,13 @@ python test/test_model_loading.py
 
 模型已成功加载，现在可以：
 
-1. **训练情感分类模型** - 运行 `weibo_senti_bert_wwn_loaded_model.py`
+1. **训练情感分类模型** - 运行以下任一脚本：
+   - `bert/bert_wwm/weibo_senti_bert_wwn_loaded_model.py` (BERT WWM)
+   - `bert/RoBERTa/weibo_senti_roberta_wwn_ext.py` (RoBERTa WWM)
+   - `bert/RoBERTa/weibo_senti_roberta_330m.py` (RoBERTa-330M)
 2. **进行文本预测** - 使用 `predict_sentiment()` 函数
 3. **保存微调后的模型** - 模型会自动保存到 `bert/saved_model/` 目录
 4. **切换不同模型** - 修改代码中的 `LOCAL_MODEL_PATH` 即可使用不同模型
+5. **尝试更大模型** - RoBERTa-330M 提供更高的准确率，适合对精度要求高的场景
 
 祝使用愉快！🎉
