@@ -6,26 +6,6 @@
 # %% 1. 导入依赖
 import os
 import random
-
-# 绕过 transformers 对 torch 版本字符串（含 +cpu/+cu 标签）的解析问题
-os.environ["TRANSFORMERS_VERBOSITY"] = "error"
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
-
-# 修复 PyTorch 2.9.x +cpu 版本的元数据缺失问题
-# importlib.metadata.version('torch') 返回 None 导致 transformers 崩溃
-import importlib.metadata as _metadata
-if not getattr(_metadata.version, '_torch_patched', False):
-    _original = _metadata.version
-    def _safe_metadata_version(name):
-        result = _original(name)
-        if result is None and name.lower() == 'torch':
-            import torch as _torch
-            return _torch.__version__.split('+')[0]
-        return result
-    _safe_metadata_version._torch_original = _original
-    _safe_metadata_version._torch_patched = True
-    _metadata.version = _safe_metadata_version
-
 import pandas as pd
 import torch
 import torch.nn.functional as F
@@ -33,12 +13,12 @@ from torch.optim import AdamW
 from torch.utils.data import DataLoader, Dataset, random_split
 from tqdm import tqdm
 from modelscope import snapshot_download
-from transformers import AutoModelForSequenceClassification, AutoTokenizer  # transformers>=4.41.0
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 # %% 2. 超参数配置
 MAX_LENGTH = 128
 BATCH_SIZE = 8
-EPOCHS = 5
+EPOCHS = 10
 LEARNING_RATE = 5e-5
 SAMPLE_SIZE = 1500
 TRAIN_RATIO = 0.8
@@ -46,7 +26,7 @@ RANDOM_SEED = 42
 MODEL_NAME = "Fengshenbang/Erlangshen-RoBERTa-330M-Sentiment"
 LOCAL_MODEL_PATH = "model/Fengshenbang/Erlangshen-RoBERTa-330M-Sentiment"
 DATA_PATH = "data/weibo/weibo_senti_100k.csv"
-SAVE_MODEL_PATH = "bert/saved_model/roberta_330m_sentiment_5"
+SAVE_MODEL_PATH = "bert/saved_model/roberta_330m_sentiment_10"
 
 # %% 3. 加载数据
 random.seed(RANDOM_SEED)

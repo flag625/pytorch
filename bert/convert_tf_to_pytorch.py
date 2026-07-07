@@ -8,23 +8,6 @@ import json
 import subprocess
 from pathlib import Path
 
-# 修复 torch 版本元数据问题
-os.environ["TRANSFORMERS_VERBOSITY"] = "error"
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
-
-import importlib.metadata as _metadata
-if not getattr(_metadata.version, '_torch_patched', False):
-    _original = _metadata.version
-    def _safe_metadata_version(name):
-        result = _safe_metadata_version._torch_original(name)
-        if result is None and name.lower() == 'torch':
-            import torch as _torch
-            return _torch.__version__.split('+')[0]
-        return result
-    _safe_metadata_version._torch_original = _original
-    _safe_metadata_version._torch_patched = True
-    _metadata.version = _safe_metadata_version
-
 
 def check_model_converted(model_dir):
     """检查模型是否已经转换为 PyTorch 格式"""

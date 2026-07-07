@@ -5,33 +5,13 @@
 # %% 1. 导入依赖
 import os
 import random
-
-# 绕过 transformers 对 torch 版本字符串（含 +cpu/+cu 标签）的解析问题
-os.environ["TRANSFORMERS_VERBOSITY"] = "error"
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
-
-# 修复 PyTorch 2.9.x +cpu 版本的元数据缺失问题
-# importlib.metadata.version('torch') 返回 None 导致 transformers 崩溃
-import importlib.metadata as _metadata
-if not getattr(_metadata.version, '_torch_patched', False):
-    _original = _metadata.version
-    def _safe_metadata_version(name):
-        result = _safe_metadata_version._torch_original(name)
-        if result is None and name.lower() == 'torch':
-            import torch as _torch
-            return _torch.__version__.split('+')[0]
-        return result
-    _safe_metadata_version._torch_original = _original
-    _safe_metadata_version._torch_patched = True
-    _metadata.version = _safe_metadata_version
-
 import pandas as pd
 import torch
 import torch.nn.functional as F
-from torch.optim import AdamW  # 使用 PyTorch 原生 AdamW，与 transformers 4.x 兼容
+from torch.optim import AdamW
 from torch.utils.data import DataLoader, Dataset, random_split
 from tqdm import tqdm
-from transformers import BertForSequenceClassification, BertTokenizer  # transformers==4.40.0
+from transformers import BertForSequenceClassification, BertTokenizer
 
 
 # %% 2. 超参数配置
